@@ -1,6 +1,7 @@
 import { type Request, type Response } from "express";
 import { signupData } from "../models/signupModel";
 import bcrypt from "bcrypt"
+import jwt from "jsonwebtoken"
 
 export default {
     signupPost : async (req: Request, res: Response) =>{
@@ -53,6 +54,51 @@ export default {
                 } catch (error) {
                     // catching the error
                     return res.status(400).json({ message: 'Server error' })
+                }
+            }
+        }
+    },
+
+    loginPost: async (req: Request, res: Response)=>{
+        const { email, password } = req.body
+
+        if ( !email || !password ) {
+            return res.status(400).json({ success : false, missingData : true, message : "Provide required datas" })
+        } else {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+            const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8}$/
+            const isEmailValid = emailRegex.test(email)
+            const isPasswordValid = passwordRegex.test(password)
+
+            // Backend validation
+            if ( !isEmailValid ) {
+                return res.status(422).json({ success : false, invalidEmail : true, message : "Please enter a valid email address." })
+            } else if ( !isPasswordValid ) {
+                return res.status(422).json({ success : false, invalidPassword : true, message : "Please enter a valid password" })
+            } else {
+
+                try {
+                    const existingUser = await signupData.findOne({ email })
+
+                    if ( !existingUser ) {
+                        return res.status(404).json({ success : false, noUser : true, message : "User does not exist" })
+                    } else {
+                        const passMatch = await bcrypt.compare( password, existingUser.password )
+                        if ( !passMatch ) {
+                            return res.status(401).json({ success : false, invalidPassword : true, message : "Password does not match" })
+                        } else {
+                            // Creating user token
+                            const payload = {
+                                user : existingUser._id
+                            }
+                            const secret = process.env.JWT_SECRET as string
+                            const token = jwt.sign(payload, secret, { expiresIn: "48h" })
+                            return res.status(200).json({ success : true, user : true, token })
+                        }
+                    }
+                } catch ( error ) {
+                    // catching error 
+                    return res.status(400).json({ success : false, message : "Server error" })
                 }
             }
         }
