@@ -8,7 +8,7 @@ export default {
         const { fullName, email, phone, password, confirmPassword } = req.body
 
         if ( !fullName || !email || !phone || !password || !confirmPassword ) {
-            return res.status(400).json({ success : false, missingData : true, message : "All fields are required" })
+            return res.status(400).json({ success : false, message : "All fields are required" })
         } else {
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
             const phoneRegex = /^\d{10}$/
@@ -19,13 +19,13 @@ export default {
 
             // Backend validation
             if ( !isEmailValid ) {
-                return res.status(422).json({ success : false, invalidEmail : true, message : "Please enter a valid email address." })
+                return res.status(422).json({ success : false, message : "Please enter a valid email address." })
             } else if ( !isPhoneValid ) {
-                return res.status(422).json({ success : false, invalidPhone : true, message : "Please provide a valid mobile number" })
+                return res.status(422).json({ success : false, message : "Please provide a valid mobile number" })
             } else if ( !isPasswordValid ) {
-                return res.status(422).json({ success : false, invalidPassword : true, message : "Please enter a valid password" })
+                return res.status(422).json({ success : false, message : "Please enter a valid password" })
             } else if ( confirmPassword !== password ) {
-                return res.status(400).json({ success : false, passwordMissmatch : true, message : "Passwords do not match. Please re-enter your password" })
+                return res.status(400).json({ success : false, message : "Passwords do not match. Please re-enter your password" })
             } else {
 
                 try {
@@ -33,7 +33,7 @@ export default {
                     const userExist = await signupData.findOne({ email })
                     
                     if ( userExist ) {
-                        return res.status(409).json({ success : false, notVerified : false, message : "User already exist" })
+                        return res.status(409).json({ success : false, message : "User already exist" })
                     } else {
                         // Creating new user data 
                         const newSchema = new signupData({
@@ -43,14 +43,14 @@ export default {
                             password: hashedPassword,
                         })
                         const newUser = await newSchema.save()
-                        
+                         
                         if ( newUser ){
-                            return res.status(200).json({ success : true, isDataSaved : true, email })
+                            return res.status(200).json({ success : true })
                         } else {
-                            return res.status(500).json({ success : false, isDataSaved : false, message : "Signup failed, try again later" })
+                            return res.status(500).json({ success : false, message : "Signup failed, try again later" })
                         }
                     }
-                    
+                
                 } catch (error) {
                     // catching the error
                     return res.status(400).json({ message: 'Server error' })
@@ -61,9 +61,9 @@ export default {
 
     loginPost: async (req: Request, res: Response)=>{
         const { email, password } = req.body
-
+        
         if ( !email || !password ) {
-            return res.status(400).json({ success : false, missingData : true, message : "Provide required datas" })
+            return res.status(400).json({ success : false, message : "Provide required datas" })
         } else {
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
             const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8}$/
@@ -72,20 +72,20 @@ export default {
 
             // Backend validation
             if ( !isEmailValid ) {
-                return res.status(422).json({ success : false, invalidEmail : true, message : "Please enter a valid email address." })
+                return res.status(422).json({ success : false, message : "Please enter a valid email address." })
             } else if ( !isPasswordValid ) {
-                return res.status(422).json({ success : false, invalidPassword : true, message : "Please enter a valid password" })
+                return res.status(422).json({ success : false, message : "Please enter a valid password" })
             } else {
 
                 try {
                     const existingUser = await signupData.findOne({ email })
 
                     if ( !existingUser ) {
-                        return res.status(404).json({ success : false, noUser : true, message : "User does not exist" })
+                        return res.status(404).json({ success : false, message : "User does not exist" })
                     } else {
                         const passMatch = await bcrypt.compare( password, existingUser.password )
                         if ( !passMatch ) {
-                            return res.status(401).json({ success : false, invalidPassword : true, message : "Password does not match" })
+                            return res.status(401).json({ success : false, message : "Password does not match" })
                         } else {
                             // Creating user token
                             const payload = {
@@ -93,7 +93,7 @@ export default {
                             }
                             const secret = process.env.JWT_SECRET as string
                             const token = jwt.sign(payload, secret, { expiresIn: "48h" })
-                            return res.status(200).json({ success : true, user : true, token })
+                            return res.status(200).json({ success : true, token })
                         }
                     }
                 } catch ( error ) {
