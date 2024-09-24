@@ -6,8 +6,8 @@ const transactionSchema = new mongoose.Schema<TransactionModel>(
             type : mongoose.Schema.Types.ObjectId,
             required : true
         },
-        incomeTransaction : [],
-        expenseTransaction : []
+        incomeTransaction : Array<Transaction>,
+        expenseTransaction : Array<Transaction>
     },
     {
         timestamps : true
@@ -16,23 +16,17 @@ const transactionSchema = new mongoose.Schema<TransactionModel>(
 
 interface TransactionModel {
     userId : mongoose.Schema.Types.ObjectId,
-    incomeTransaction : [
-        {
-            transactionType : string,
-            transactionCategory : string,
-            transactionAmount : number,
-            transactionDescription : string,
-            transactionDate : Date
-        }
-    ],
-    expenseTransaction : [
-        {
-            transactionType : string,
-            transactionCategory : string,
-            transactionAmount : number,
-            transactionDescription : string,
-            transactionDate : Date
-        }
-    ]
+    incomeTransaction : Array<Transaction>,
+    expenseTransaction : Array<Transaction>
 }
+
+interface Transaction {
+    _id: mongoose.Schema.Types.ObjectId;
+    transactionType: string;
+    transactionCategory: string;
+    transactionAmount: number;
+    transactionDescription: string;
+    transactionDate: Date;
+}
+
 export const transactionModel = mongoose.model("transactions", transactionSchema)

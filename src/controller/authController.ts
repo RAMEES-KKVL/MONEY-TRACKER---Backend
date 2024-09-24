@@ -92,7 +92,7 @@ export default {
                                 user : existingUser._id
                             }
                             const secret = process.env.JWT_SECRET as string
-                            const token = jwt.sign(payload, secret, { expiresIn: "48h" })
+                            const token = jwt.sign(payload, secret, { expiresIn: "2hr" })
                             return res.status(200).json({ success : true, token })
                         }
                     }
